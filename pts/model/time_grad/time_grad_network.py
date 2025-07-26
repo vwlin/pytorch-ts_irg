@@ -195,9 +195,11 @@ class TimeGradTrainingNetwork(nn.Module):
         past_time_feat: torch.Tensor,
         past_target_cdf: torch.Tensor,
         past_observed_values: torch.Tensor,
+        past_feat_dynamic_real: torch.Tensor,
         past_is_pad: torch.Tensor,
         future_time_feat: Optional[torch.Tensor],
         future_target_cdf: Optional[torch.Tensor],
+        future_feat_dynamic_real: Optional[torch.Tensor],
         target_dimension_indicator: torch.Tensor,
     ) -> Tuple[
         torch.Tensor,
@@ -322,14 +324,16 @@ class TimeGradTrainingNetwork(nn.Module):
 
     def forward(
         self,
-        target_dimension_indicator: torch.Tensor,
-        past_time_feat: torch.Tensor,
-        past_target_cdf: torch.Tensor,
-        past_observed_values: torch.Tensor,
-        past_is_pad: torch.Tensor,
-        future_time_feat: torch.Tensor,
-        future_target_cdf: torch.Tensor,
-        future_observed_values: torch.Tensor,
+        target_dimension_indicator: torch.Tensor, # idx 0: indices B x 52
+        past_time_feat: torch.Tensor, # idx 1: fourier encodings B x 3 x 2
+        past_target_cdf: torch.Tensor, # idx 2: history B x 3 x 52
+        past_observed_values: torch.Tensor, # idx 3: ones B x 3 x 52
+        past_feat_dynamic_real: torch.Tensor, # idx 4: history timestamps B x 3 x 1
+        past_is_pad: torch.Tensor, # idx 5: zeros B x 3
+        future_time_feat: torch.Tensor, # idx 6: fourier encodings B, 1, 2
+        future_target_cdf: torch.Tensor, # idx 7: prediction B x 1 x 52
+        future_observed_values: torch.Tensor, # idx 8: ones B x 1 x 52
+        future_feat_dynamic_real: torch.Tensor # idx 9: prediction timetamps B x 1 x 1
     ) -> Tuple[torch.Tensor, ...]:
         """
         Computes the loss for training DeepVAR, all inputs tensors representing
@@ -348,6 +352,8 @@ class TimeGradTrainingNetwork(nn.Module):
         past_observed_values
             Indicator whether or not the values were observed (batch_size,
             history_length, target_dim)
+        past_feat_dynamic_real
+            Past additional timetamp encoding
         past_is_pad
             Indicator whether the past target values have been padded
             (batch_size, history_length)
@@ -359,6 +365,8 @@ class TimeGradTrainingNetwork(nn.Module):
         future_observed_values
             Indicator whether or not the future values were observed
             (batch_size, prediction_length, target_dim)
+        future_feat_dynamic_real
+            Future additional timestamp encoding
 
         Returns
         -------
@@ -380,10 +388,12 @@ class TimeGradTrainingNetwork(nn.Module):
             past_time_feat=past_time_feat,
             past_target_cdf=past_target_cdf,
             past_observed_values=past_observed_values,
+            past_feat_dynamic_real=past_feat_dynamic_real,
             past_is_pad=past_is_pad,
             future_time_feat=future_time_feat,
             future_target_cdf=future_target_cdf,
             target_dimension_indicator=target_dimension_indicator,
+            future_feat_dynamic_real=future_feat_dynamic_real,
         )
 
         # put together target sequence

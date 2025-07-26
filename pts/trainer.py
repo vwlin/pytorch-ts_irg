@@ -64,6 +64,7 @@ class Trainer:
                     optimizer.zero_grad()
 
                     inputs = [v.to(self.device) for v in data_entry.values()]
+
                     output = net(*inputs)
 
                     if isinstance(output, (list, tuple)):

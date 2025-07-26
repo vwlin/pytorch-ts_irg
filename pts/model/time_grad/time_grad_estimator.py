@@ -176,6 +176,7 @@ class TimeGradEstimator(PyTorchEstimator):
             time_series_fields=[
                 FieldName.FEAT_TIME,
                 FieldName.OBSERVED_VALUES,
+                FieldName.FEAT_DYNAMIC_REAL,
             ],
         ) + (
             RenameFields(
