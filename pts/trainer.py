@@ -24,6 +24,8 @@ class Trainer:
         maximum_learning_rate: float = 1e-2,
         clip_gradient: Optional[float] = None,
         device: Optional[Union[torch.device, str]] = None,
+        patience: Optional[int] = None,
+        min_delta: Optional[float] = None,
         **kwargs,
     ) -> None:
         self.epochs = epochs
@@ -35,12 +37,20 @@ class Trainer:
         self.clip_gradient = clip_gradient
         self.device = device
 
+        # add early stopping
+        self.early_stopping = patience is not None and min_delta is not None
+        self.patience = patience
+        self.min_delta = min_delta
+
     def __call__(
         self,
         net: nn.Module,
         train_iter: DataLoader,
         validation_iter: Optional[DataLoader] = None,
     ) -> None:
+        if self.early_stopping:
+            assert validation_iter is not None, "Validation data required for early stopping."
+
         optimizer = Adam(
             net.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay
         )
@@ -52,6 +62,8 @@ class Trainer:
             epochs=self.epochs,
         )
 
+        patience_counter = 0
+        best_loss = float('inf')
         for epoch_no in range(self.epochs):
             # mark epoch start time
             tic = time.time()
@@ -122,6 +134,17 @@ class Trainer:
                             break
 
                 it.close()
+
+                # early stopping
+                if self.early_stopping:
+                    if avg_epoch_loss_val < best_loss - self.min_delta:
+                        best_loss = avg_epoch_loss_val
+                        patience_counter = 0
+                    else:
+                        patience_counter += 1
+                        if patience_counter >= self.patience:
+                            print(f'Early stopping at epoch {epoch_no}')
+                            break
 
             # mark epoch end time and log time cost of current epoch
             toc = time.time()
