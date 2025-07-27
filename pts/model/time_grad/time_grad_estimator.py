@@ -34,7 +34,6 @@ from pts.model.utils import get_module_forward_input_names
 
 from .time_grad_network import TimeGradTrainingNetwork, TimeGradPredictionNetwork
 
-
 class TimeGradEstimator(PyTorchEstimator):
     def __init__(
         self,
@@ -136,17 +135,17 @@ class TimeGradEstimator(PyTorchEstimator):
                     target_field=FieldName.TARGET,
                     output_field=FieldName.OBSERVED_VALUES,
                 ),
-                AddTimeFeatures(
-                    start_field=FieldName.START,
-                    target_field=FieldName.TARGET,
-                    output_field=FieldName.FEAT_TIME,
-                    time_features=self.time_features,
-                    pred_length=self.prediction_length,
-                ),
-                VstackFeatures(
-                    output_field=FieldName.FEAT_TIME,
-                    input_fields=[FieldName.FEAT_TIME],
-                ),
+                # AddTimeFeatures(
+                #     start_field=FieldName.START,
+                #     target_field=FieldName.TARGET,
+                #     output_field=FieldName.FEAT_TIME,
+                #     time_features=self.time_features,
+                #     pred_length=self.prediction_length,
+                # ),
+                # VstackFeatures(
+                #     output_field=FieldName.FEAT_TIME,
+                #     input_fields=[FieldName.FEAT_TIME],
+                # ),
                 SetFieldIfNotPresent(field=FieldName.FEAT_STATIC_CAT, value=[0]),
                 TargetDimIndicator(
                     field_name="target_dimension_indicator",
@@ -176,7 +175,7 @@ class TimeGradEstimator(PyTorchEstimator):
             time_series_fields=[
                 FieldName.FEAT_TIME,
                 FieldName.OBSERVED_VALUES,
-                FieldName.FEAT_DYNAMIC_REAL,
+                # FieldName.FEAT_DYNAMIC_REAL,
             ],
         ) + (
             RenameFields(
@@ -252,7 +251,7 @@ class TimeGradEstimator(PyTorchEstimator):
             input_names=input_names,
             prediction_net=prediction_network,
             batch_size=self.trainer.batch_size,
-            freq=self.freq,
+            # freq=self.freq,
             prediction_length=self.prediction_length,
-            device=device,
+            # device=device,
         )
